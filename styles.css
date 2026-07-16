@@ -14,6 +14,7 @@
 }
 
 @media(max-width:800px){
+  .hero-video{transform:translate(-50%,-50%) scale(1.18)}
   .hero-content{display:flex;justify-content:center;align-items:flex-end;width:100%}
   .hero-logo{width:min(82vw,520px);margin-inline:auto}
   .menu-toggle{width:42px;height:42px;padding:10px 7px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:5px;cursor:pointer}
