@@ -23,3 +23,24 @@
   .menu-toggle[aria-expanded="true"] i:nth-child(2){opacity:0}
   .menu-toggle[aria-expanded="true"] i:nth-child(3){transform:translateY(-6.5px) rotate(-45deg)}
 }
+
+/* Entrada pós-hero inspirada na Matter: parallax do vídeo + seção subindo no scroll. */
+.hero{z-index:1}
+.hero-video{--hero-video-y:0px;--hero-video-scale:1;transform:translate(-50%,calc(-50% + var(--hero-video-y))) scale(var(--hero-video-scale));will-change:transform}
+.intro[data-scroll-intro]{--intro-opacity:1;--intro-y:0px;--intro-clip:0%;background:var(--cream);color:var(--ink);z-index:3;display:flex;align-items:center;min-height:112svh;overflow:hidden}
+.intro[data-scroll-intro] .section-index{position:absolute;top:clamp(78px,9vw,120px);left:3.2vw;right:3.2vw;border-color:rgba(23,32,25,.18);opacity:var(--intro-opacity);transform:translateY(calc(var(--intro-y) * .35));transition:border-color .3s}
+.intro[data-scroll-intro] .section-index span:last-child{color:rgba(23,32,25,.62)}
+.intro[data-scroll-intro] .intro-copy{width:min(100%,980px);margin:0 auto;text-align:center}
+.intro[data-scroll-intro] h2{margin:0;font-size:clamp(46px,7.2vw,118px);clip-path:inset(var(--intro-clip) 0 0 0);opacity:var(--intro-opacity);transform:translateY(var(--intro-y));will-change:transform,opacity,clip-path}
+.intro[data-scroll-intro] h2 span{color:var(--forest)}
+.intro[data-scroll-intro] .intro-copy p{margin:clamp(30px,4vw,52px) auto 0;max-width:680px;color:#566057;opacity:var(--intro-opacity);transform:translateY(calc(var(--intro-y) * .62));will-change:transform,opacity}
+.intro[data-scroll-intro] .orbit-visual{opacity:calc(var(--intro-opacity) * .34);transform:translate3d(calc(var(--intro-y) * -1),calc(var(--intro-y) * .35),0) rotate(calc(var(--intro-opacity) * 18deg));will-change:transform,opacity}
+
+@media(max-width:800px){
+  .hero-video{--hero-video-scale:1.18}
+  .intro[data-scroll-intro]{min-height:105svh;padding-top:120px;padding-bottom:90px}
+  .intro[data-scroll-intro] .section-index{left:20px;right:20px;top:78px}
+  .intro[data-scroll-intro] .intro-copy{text-align:left}
+  .intro[data-scroll-intro] h2{font-size:clamp(45px,14vw,76px)}
+  .intro[data-scroll-intro] .intro-copy p{margin-left:0;font-size:16px}
+}
