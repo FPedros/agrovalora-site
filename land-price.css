@@ -1,0 +1,33 @@
+.land-price-map{position:relative;overflow:visible;background:#f5f5f2;border:1px solid var(--line)}.land-price-map img{display:block;width:100%;height:auto}.map-pole{position:absolute;width:30px;height:30px;margin:-15px 0 0 -15px;border:0;border-radius:50%;background:rgba(182,214,92,.08);cursor:pointer;color:var(--ink);transition:background .2s,box-shadow .2s;z-index:3}.map-pole:before{content:"";position:absolute;inset:8px;border-radius:50%;background:var(--lime);box-shadow:0 0 0 1px var(--ink)}.map-pole:hover,.map-pole:focus-visible{background:rgba(182,214,92,.4);box-shadow:0 0 0 8px rgba(182,214,92,.2);outline:none;z-index:8}.map-pole span{position:absolute;left:50%;bottom:calc(100% + 13px);width:240px;padding:16px;text-align:left;background:var(--ink);color:white;box-shadow:0 16px 40px rgba(24,32,26,.2);opacity:0;visibility:hidden;transform:translate(-50%,8px);transition:opacity .2s,transform .2s,visibility .2s;pointer-events:none}.map-pole span:after{content:"";position:absolute;left:50%;top:100%;border:7px solid transparent;border-top-color:var(--ink);transform:translateX(-50%)}.map-pole:hover span,.map-pole:focus-visible span{opacity:1;visibility:visible;transform:translate(-50%,0)}.map-pole b{display:block;color:var(--lime);font:400 9px var(--mono);margin-bottom:12px}.map-pole strong{display:block;font-size:13px;line-height:1.35;font-weight:500}.map-pole small{display:block;font:300 9px var(--mono);color:#aeb6b0;margin:8px 0 14px}.map-pole em{display:block;font:500 14px var(--mono);font-style:normal}.pole-1{left:29.2%;top:26.6%}.pole-2{left:51.1%;top:23.4%}.pole-3{left:72.2%;top:42%}.pole-4{left:70.2%;top:68.3%}.pole-5{left:60.6%;top:79%}.pole-6{left:60.5%;top:61.5%}.pole-7{left:46.4%;top:73%}
+@media(max-width:800px){.map-pole{width:38px;height:38px;margin:-19px 0 0 -19px}.map-pole:before{inset:12px}.map-pole span{position:fixed;left:20px;right:20px;bottom:20px;width:auto;transform:translateY(12px);z-index:50}.map-pole span:after{display:none}.map-pole:hover span,.map-pole:focus-visible span{transform:none}.land-price-map{overflow:hidden}}
+
+/* Cada botão cobre a extensão aproximada de seu polo no mapa. */
+.map-pole{margin:0;border-radius:0;background:transparent;box-shadow:none}
+.map-pole:before{display:none}
+.map-pole:hover,.map-pole:focus-visible{background:transparent;box-shadow:none;outline:none}
+.pole-1{left:18.5%;top:13.5%;width:21.5%;height:30%;clip-path:polygon(4% 0,94% 0,91% 11%,89% 23%,94% 37%,91% 59%,96% 76%,78% 100%,49% 96%,48% 82%,4% 81%,7% 61%,1% 42%)}
+.pole-2{left:36.5%;top:2.5%;width:45.5%;height:33%;clip-path:polygon(2% 15%,7% 0,11% 19%,15% 31%,100% 48%,96% 100%,76% 90%,64% 100%,46% 83%,28% 91%,17% 76%,4% 79%,7% 53%,0 43%)}
+.pole-3{left:64%;top:19%;width:18%;height:45%;clip-path:polygon(22% 0,100% 7%,92% 100%,61% 91%,44% 100%,31% 76%,0 70%,17% 43%,11% 24%)}
+.pole-4{left:65.5%;top:57%;width:11.5%;height:19%;clip-path:polygon(0 8%,51% 0,100% 16%,78% 100%,43% 84%,29% 59%,5% 48%)}
+.pole-5{left:54%;top:69%;width:13%;height:19%;clip-path:polygon(4% 0,84% 1%,100% 45%,75% 100%,20% 84%,0 48%)}
+.pole-6{left:49.5%;top:49%;width:20%;height:24%;clip-path:polygon(7% 0,67% 1%,100% 35%,79% 76%,58% 100%,11% 85%,18% 52%,0 29%)}
+.pole-7{left:35.5%;top:61.5%;width:21%;height:27%;clip-path:polygon(0 6%,58% 0,100% 26%,91% 73%,55% 100%,21% 89%,7% 64%)}
+.pole-8{left:23.5%;top:60%;width:20%;height:16%;clip-path:polygon(8% 0,88% 5%,100% 48%,78% 100%,4% 86%,0 28%)}
+.pole-9{left:23%;top:35%;width:27%;height:29%;clip-path:polygon(18% 0,71% 2%,100% 42%,86% 91%,52% 100%,18% 89%,0 56%)}
+.pole-10{left:38%;top:25%;width:28%;height:38%;clip-path:polygon(8% 0,48% 6%,100% 18%,80% 66%,62% 100%,27% 87%,18% 54%,0 31%)}
+.map-pole.no-data span{background:#59605b}.map-pole.no-data span:after{border-top-color:#59605b}.map-pole.no-data b{color:#d5d9d5}.map-pole.no-data em{font-size:11px;color:#d5d9d5}
+.map-pole span{left:50%;bottom:55%;z-index:20}
+@media(max-width:800px){.map-pole{margin:0}.map-pole:hover,.map-pole:focus-visible{box-shadow:none}.map-pole span{position:fixed;left:20px;right:20px;bottom:20px}}
+
+/* O mouse usa a detecção exata das regiões fechadas da imagem. */
+.land-price-map.pointer-ready .map-pole{pointer-events:none}
+.pixel-region-overlay{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:2}
+.pixel-map-tooltip{position:absolute;z-index:30;width:min(620px,76vw);padding:24px;background:var(--ink);color:#fff;box-shadow:0 16px 40px rgba(24,32,26,.2);opacity:0;visibility:hidden;pointer-events:none;transform:translate(-50%,calc(-100% - 16px));transition:opacity .12s;left:0;top:0}.pixel-map-tooltip.visible{opacity:1;visibility:visible}.pixel-map-tooltip b{display:block;color:var(--lime);font:400 11px var(--mono);margin-bottom:10px}.pixel-map-tooltip>strong{display:block;font-size:16px;line-height:1.35;font-weight:500;margin-bottom:19px}.tooltip-table-wrap{overflow-x:auto}.pixel-map-tooltip table{width:100%;border-collapse:collapse}.pixel-map-tooltip th,.pixel-map-tooltip td{padding:10px 14px 10px 0;border-top:1px solid rgba(255,255,255,.16);text-align:left;font:300 11.5px/1.4 var(--mono);white-space:nowrap}.pixel-map-tooltip tbody th{font-weight:400;white-space:normal}.pixel-map-tooltip thead th{color:#b6bdb8;font-size:9.5px;text-transform:uppercase}.pixel-map-tooltip td:last-child{text-align:right;font-size:12.5px;font-weight:500}.pixel-map-tooltip.no-data{background:#59605b}.pixel-map-tooltip.no-data b{color:#d5d9d5}
+@media(max-width:800px){.pixel-map-tooltip{position:fixed;left:20px!important;right:20px;top:auto!important;bottom:20px;width:auto;transform:none}}
+
+/* Dimensionamento relativo à altura disponível da tela. */
+.land-price-map{width:min(100%,90vh);aspect-ratio:3451/2394;margin-inline:auto;border:0;box-shadow:none}
+.land-price-map img{width:100%;height:100%;object-fit:fill;opacity:1;filter:none}
+.pixel-region-overlay{left:0;top:0;right:auto;bottom:auto;width:100%;height:100%}
+@media(min-width:801px) and (max-height:850px){.land-price-map{width:min(100%,82vh)}.land-price-block{padding-top:8vh;padding-bottom:13vh}.land-price-block .analysis-content header{margin-bottom:20px}}
+@media(max-width:800px){.land-price-map{width:100%}}

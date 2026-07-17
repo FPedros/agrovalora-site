@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Conheça as análises territoriais da Agrovalora." />
+    <meta name="theme-color" content="#f5f5f2" />
+    <title>Análises — Agrovalora</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Manrope:wght@400;500;600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/analises.css" />
+    <link rel="stylesheet" href="/analysis-tabs.css" />
+    <link rel="stylesheet" href="/land-price.css" />
+  </head>
+  <body>
+    <header class="analysis-header">
+      <a href="/" class="analysis-brand"><img src="/logo.png" alt="Agrovalora" /></a>
+      <a href="/" class="back-link">Voltar ao início <span>↗</span></a>
+    </header>
+
+    <main>
+      <section class="page-intro">
+        <p class="micro-label">Inteligência territorial / Aplicações</p>
+        <h1>Nossas análises</h1>
+        <p>Dados complexos transformados em uma leitura objetiva do território, para decisões mais seguras no campo.</p>
+      </section>
+
+      <nav class="analysis-tabs" aria-label="Navegação entre análises" data-analysis-tabs>
+        <span class="analysis-tabs-label">Análises</span>
+        <div class="analysis-tabs-links">
+          <a class="active" href="#avaliacao">Avaliação territorial</a>
+          <a href="#preco-terra">Preço Terra</a>
+          <a href="#acesso">Análise de acesso</a>
+          <a href="#localizacao">Localização</a>
+          <a href="#agrogrid">Agrogrid</a>
+        </div>
+      </nav>
+
+      <section class="analysis-block" id="avaliacao">
+        <aside class="analysis-index">
+          <strong>Avaliação territorial</strong>
+          <span>Uso e ocupação do solo</span><span>Infraestrutura e acessos</span><span>Histórico multitemporal</span><span>Comparáveis regionais</span>
+        </aside>
+        <div class="analysis-content">
+          <header><h2>Avaliação territorial</h2><p>Uma visão completa da propriedade para compreender localização, ocupação, infraestrutura e potencial de valor.</p></header>
+          <div class="analysis-image image-territory"><div class="image-ui"><span>ÁREA ANALISADA</span><i></i></div><p>Espaço para imagem da análise</p></div>
+          <p class="image-meta">Imagem de satélite / Limites da propriedade<br />Atualização mais recente</p>
+          <div class="analysis-notes"><div><span>O desafio</span><p>Informações dispersas e critérios subjetivos tornam a avaliação lenta, pouco comparável e difícil de auditar.</p></div><div><span>Nossa análise</span><p>Integramos dados geoespaciais, agronômicos e de mercado em uma visão clara, rastreável e pronta para decisão.</p></div></div>
+        </div>
+      </section>
+
+      <section class="analysis-block land-price-block" id="preco-terra">
+        <aside class="analysis-index">
+          <strong>Preço Terra</strong>
+          <span>Mato Grosso</span><span>Valor por hectare</span><span>Referência abr./2026</span><span>Polos produtivos</span>
+        </aside>
+        <div class="analysis-content">
+          <header><h2>Preço Terra</h2><p>Valores referenciais por hectare para diferentes usos e potenciais produtivos no estado de Mato Grosso.</p></header>
+          <div class="land-price-map" aria-label="Mapa interativo de preços da terra em Mato Grosso">
+            <img src="/precoterra-crop.png" alt="Mato Grosso e estados vizinhos, com Mato Grosso dividido em polos numerados de 1 a 10" />
+            <button class="map-pole pole-1" aria-label="1 Agricultura de Alto Potencial abr.-26 100.000,00"><span><b>1</b><strong>Agricultura de Alto Potencial</strong><small>abr.-26</small><em>100.000,00</em></span></button>
+            <button class="map-pole pole-2" aria-label="2 Agricultura de Médio Potencial abr.-26 75.000,00"><span><b>2</b><strong>Agricultura de Médio Potencial</strong><small>abr.-26</small><em>75.000,00</em></span></button>
+            <button class="map-pole pole-3" aria-label="3 Culturas Permanentes abr.-26 50.000,00"><span><b>3</b><strong>Culturas Permanentes</strong><small>abr.-26</small><em>50.000,00</em></span></button>
+            <button class="map-pole pole-4" aria-label="4 Pastagem de Alto Suporte abr.-26 30.000,00"><span><b>4</b><strong>Pastagem de Alto Suporte</strong><small>abr.-26</small><em>30.000,00</em></span></button>
+            <button class="map-pole pole-5" aria-label="5 Pastagem de Médio Suporte abr.-26 15.000,00"><span><b>5</b><strong>Pastagem de Médio Suporte</strong><small>abr.-26</small><em>15.000,00</em></span></button>
+            <button class="map-pole pole-6" aria-label="6 Silvicultura abr.-26 25.000,00"><span><b>6</b><strong>Silvicultura</strong><small>abr.-26</small><em>25.000,00</em></span></button>
+            <button class="map-pole pole-7" aria-label="7 Remanescente de Vegetação abr.-26 75.000,00"><span><b>7</b><strong>Remanescente de Vegetação</strong><small>abr.-26</small><em>75.000,00</em></span></button>
+            <button class="map-pole pole-8 no-data" aria-label="Polo 8: dados ainda não informados"><span><b>08</b><strong>Dados não informados</strong><small>Referência pendente</small><em>Valor a definir</em></span></button>
+            <button class="map-pole pole-9 no-data" aria-label="Polo 9: dados ainda não informados"><span><b>09</b><strong>Dados não informados</strong><small>Referência pendente</small><em>Valor a definir</em></span></button>
+            <button class="map-pole pole-10 no-data" aria-label="Polo 10: dados ainda não informados"><span><b>10</b><strong>Dados não informados</strong><small>Referência pendente</small><em>Valor a definir</em></span></button>
+            <div class="pixel-map-tooltip" data-map-tooltip aria-hidden="true"></div>
+          </div>
+          <p class="image-meta">Mato Grosso / Valores em reais por hectare<br />Posicione o cursor sobre um dos polos</p>
+          <div class="analysis-notes"><div><span>Leitura do mapa</span><p>Passe o cursor ou use a tecla Tab para consultar a classificação, a data de referência e o valor de cada polo.</p></div><div><span>Referência</span><p>Valores posicionais de abril de 2026. Os polos 8, 9 e 10 permanecem identificados como dados pendentes.</p></div></div>
+        </div>
+      </section>
+
+      <section class="analysis-block" id="acesso">
+        <aside class="analysis-index">
+          <strong>Análise de acesso</strong>
+          <span>Malha viária</span><span>Tempo de deslocamento</span><span>Acesso à propriedade</span><span>Centros consumidores</span>
+        </aside>
+        <div class="analysis-content">
+          <header><h2>Análise de acesso</h2><p>Rotas, distâncias e condições logísticas que conectam o imóvel aos principais destinos da região.</p></header>
+          <div class="analysis-image image-access"><div class="image-ui"><span>ROTAS E CONEXÕES</span><i></i></div><p>Espaço para imagem da análise</p></div>
+          <p class="image-meta">Malha viária / Tempos de deslocamento<br />Conectividade territorial</p>
+          <div class="analysis-notes"><div><span>O desafio</span><p>A distância em linha reta não revela as condições reais de acesso, o tempo de viagem e os gargalos do trajeto.</p></div><div><span>Nossa análise</span><p>Mapeamos rotas e conexões para demonstrar como o ativo se relaciona com cidades, armazéns, indústrias e corredores logísticos.</p></div></div>
+        </div>
+      </section>
+
+      <section class="analysis-block" id="localizacao">
+        <aside class="analysis-index">
+          <strong>Localização</strong>
+          <span>Município e região</span><span>Coordenadas</span><span>Bioma e bacia</span><span>Entorno estratégico</span>
+        </aside>
+        <div class="analysis-content">
+          <header><h2>Localização</h2><p>Uma leitura objetiva da posição do imóvel e das características territoriais que influenciam seu uso e seu valor.</p></header>
+          <div class="analysis-image image-location"><div class="image-ui"><span>CONTEXTO TERRITORIAL</span><i></i></div><p>Espaço para imagem da análise</p></div>
+          <p class="image-meta">Posição geográfica / Contexto regional<br />Camadas territoriais integradas</p>
+          <div class="analysis-notes"><div><span>O desafio</span><p>Uma coordenada isolada não explica o contexto produtivo, ambiental e econômico em que o imóvel está inserido.</p></div><div><span>Nossa análise</span><p>Organizamos município, região, bioma, bacia e elementos do entorno em uma visão espacial clara e comparável.</p></div></div>
+        </div>
+      </section>
+
+      <section class="analysis-block" id="agrogrid">
+        <aside class="analysis-index">
+          <strong>Agrogrid</strong>
+          <span>Grade espacial</span><span>Indicadores por célula</span><span>Comparação territorial</span><span>Monitoramento contínuo</span>
+        </aside>
+        <div class="analysis-content">
+          <header><h2>Agrogrid</h2><p>O território dividido em uma grade inteligente para comparar indicadores e localizar variações dentro da propriedade.</p></header>
+          <div class="analysis-image image-agrogrid"><div class="image-ui"><span>INTELIGÊNCIA POR CÉLULA</span><i></i></div><p>Espaço para imagem da análise</p></div>
+          <p class="image-meta">Grade geoespacial / Indicadores normalizados<br />Leitura célula a célula</p>
+          <div class="analysis-notes"><div><span>O desafio</span><p>Médias gerais podem esconder diferenças relevantes de produtividade, risco e potencial dentro do mesmo ativo.</p></div><div><span>Nossa análise</span><p>O Agrogrid estrutura o território em células comparáveis, revelando padrões e apoiando decisões com maior precisão espacial.</p></div></div>
+        </div>
+      </section>
+
+      <section class="categories">
+        <p>Áreas de análise</p>
+        <nav><a class="active" href="#avaliacao">Territorial</a><a href="#preco-terra">Preço Terra</a><a href="#acesso">Acesso</a><a href="#localizacao">Localização</a><a href="#agrogrid">Agrogrid</a></nav>
+        <div class="categories-visual"><span>Agrovalora</span><p>Uma nova camada de inteligência sobre cada território.</p></div>
+        <div class="categories-copy"><div><span>O que entregamos</span><p>Informação organizada para avaliar, comparar e acompanhar ativos rurais.</p></div><div><span>Para quem</span><p>Instituições financeiras, investidores, proprietários e empresas do agronegócio.</p></div></div>
+      </section>
+
+      <section class="analysis-contact">
+        <div class="contact-shape"><span>AV</span></div>
+        <p class="contact-eyebrow">E muito mais</p>
+        <h2>Contate nossa equipe para<br />personalizar sua necessidade.</h2>
+        <a href="mailto:contato@agrovalora.com.br">Falar com nossa equipe <span>↗</span></a>
+      </section>
+    </main>
+
+    <footer><img src="/logo.png" alt="Agrovalora" /><p>Inteligência territorial</p><a href="mailto:contato@agrovalora.com.br">contato@agrovalora.com.br</a><small>© 2026 Agrovalora</small></footer>
+    <script type="module" src="/analises.js"></script>
+  </body>
+</html>
