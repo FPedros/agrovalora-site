@@ -7,6 +7,7 @@ export default defineConfig({
       input: {
         main: resolve(__dirname, 'index.html'),
         analises: resolve(__dirname, 'analises.html'),
+        blog: resolve(__dirname, 'blog.html'),
       },
     },
   },

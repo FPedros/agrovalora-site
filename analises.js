@@ -1,6 +1,70 @@
 import { initSmoothScroll } from './smooth-scroll.js';
 
-initSmoothScroll({ anchorOffset: -42 });
+const lenis = initSmoothScroll({ anchorOffset: -112 });
+
+const header = document.querySelector('[data-header]');
+const menuToggle = document.querySelector('[data-menu-toggle]');
+const mainNav = document.querySelector('[data-nav]');
+let lastScrollY = window.scrollY;
+let directionDistance = 0;
+let lastDirection = 0;
+let tabNavigationInProgress = false;
+let tabNavigationId = 0;
+
+function setHeaderHidden(isHidden) {
+  document.documentElement.classList.toggle('analysis-header-hidden', isHidden);
+}
+
+window.addEventListener('scroll', () => {
+  const currentScrollY = Math.max(window.scrollY, 0);
+  const delta = currentScrollY - lastScrollY;
+  const direction = Math.sign(delta);
+
+  header?.classList.toggle('scrolled', currentScrollY > 40);
+
+  if (currentScrollY <= 24) {
+    setHeaderHidden(false);
+    directionDistance = 0;
+  } else if (!tabNavigationInProgress && Math.abs(delta) > .5 && !mainNav?.classList.contains('open')) {
+    directionDistance = direction === lastDirection
+      ? directionDistance + Math.abs(delta)
+      : Math.abs(delta);
+
+    if (direction > 0 && currentScrollY > 90 && directionDistance > 14) setHeaderHidden(true);
+    if (direction < 0 && directionDistance > 10) setHeaderHidden(false);
+  }
+
+  if (direction) lastDirection = direction;
+  lastScrollY = currentScrollY;
+}, { passive: true });
+
+function setMenuOpen(isOpen) {
+  if (isOpen) setHeaderHidden(false);
+  mainNav?.classList.toggle('open', isOpen);
+  menuToggle?.setAttribute('aria-expanded', String(isOpen));
+}
+
+menuToggle?.addEventListener('click', () => setMenuOpen(!mainNav?.classList.contains('open')));
+mainNav?.querySelectorAll('a').forEach((link) => link.addEventListener('click', () => setMenuOpen(false)));
+
+let menuTouchStartX = 0;
+let menuTouchStartY = 0;
+
+window.addEventListener('touchstart', (event) => {
+  menuTouchStartX = event.touches[0].clientX;
+  menuTouchStartY = event.touches[0].clientY;
+}, { passive: true });
+
+window.addEventListener('touchend', (event) => {
+  if (window.innerWidth > 800 || !mainNav) return;
+  const touch = event.changedTouches[0];
+  const deltaX = touch.clientX - menuTouchStartX;
+  const deltaY = touch.clientY - menuTouchStartY;
+  const horizontal = Math.abs(deltaX) > 65 && Math.abs(deltaX) > Math.abs(deltaY) * 1.25;
+  if (!horizontal) return;
+  if (deltaX < 0 && menuTouchStartX > window.innerWidth * .72) setMenuOpen(true);
+  if (deltaX > 0 && mainNav.classList.contains('open')) setMenuOpen(false);
+}, { passive: true });
 
 const reveal = new IntersectionObserver((entries) => entries.forEach((entry) => {
   if (entry.isIntersecting) {
@@ -16,12 +80,47 @@ document.querySelectorAll('.analysis-block, .categories, .analysis-contact').for
 
 const analysisSections = [...document.querySelectorAll('.analysis-block[id]')];
 const analysisLinks = [...document.querySelectorAll('[data-analysis-tabs] a')];
+const analysisNavigationLinks = [...document.querySelectorAll('[data-analysis-tabs] a, .categories nav a')];
+const analysisTabs = document.querySelector('[data-analysis-tabs]');
+const analysisTabsScroller = analysisTabs?.querySelector('.analysis-tabs-links');
+
+analysisNavigationLinks.forEach((link) => link.addEventListener('click', (event) => {
+  const section = document.getElementById(link.hash.slice(1));
+  if (!section) return;
+
+  event.preventDefault();
+  event.stopPropagation();
+  setHeaderHidden(true);
+  tabNavigationInProgress = true;
+  const navigationId = ++tabNavigationId;
+  const title = section.querySelector('.analysis-content header') || section;
+  const tabsHeight = analysisTabs?.offsetHeight || (window.innerWidth <= 800 ? 48 : 42);
+  const availableHeight = window.innerHeight - tabsHeight;
+  const responsiveGap = Math.max(48, Math.min(96, availableHeight * .1));
+  const titleTop = tabsHeight + responsiveGap;
+  const offset = -titleTop;
+
+  analysisLinks.forEach((tabLink) => tabLink.classList.toggle('active', tabLink.hash === link.hash));
+  history.replaceState(null, '', link.hash);
+  lenis.scrollTo(title, {
+    offset,
+    duration: 1.35,
+    onComplete: () => {
+      if (navigationId === tabNavigationId) tabNavigationInProgress = false;
+    },
+  });
+}));
+
 const activeAnalysis = new IntersectionObserver((entries) => {
   entries.forEach((entry) => {
     if (!entry.isIntersecting) return;
     const currentLink = analysisLinks.find((link) => link.hash === `#${entry.target.id}`);
     analysisLinks.forEach((link) => link.classList.toggle('active', link === currentLink));
-    currentLink?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+    if (currentLink && analysisTabsScroller) {
+      const centeredLeft = currentLink.offsetLeft
+        - (analysisTabsScroller.clientWidth - currentLink.offsetWidth) / 2;
+      analysisTabsScroller.scrollTo({ left: centeredLeft, behavior: 'smooth' });
+    }
   });
 }, { rootMargin: '-35% 0px -55%', threshold: 0 });
 analysisSections.forEach((section) => activeAnalysis.observe(section));
@@ -52,8 +151,219 @@ const poleColors = {
   9: [221, 226, 98, 108],
   10: [232, 232, 112, 105],
 };
+
+function prepareRedBoundaryMap() {
+  const maxDetectionWidth = 1200;
+  const scale = Math.min(1, maxDetectionWidth / mapImage.naturalWidth);
+  const canvas = document.createElement('canvas');
+  const context = canvas.getContext('2d', { willReadFrequently: true });
+  canvas.width = Math.round(mapImage.naturalWidth * scale);
+  canvas.height = Math.round(mapImage.naturalHeight * scale);
+  context.drawImage(mapImage, 0, 0, canvas.width, canvas.height);
+
+  const pixels = context.getImageData(0, 0, canvas.width, canvas.height).data;
+  const pixelCount = canvas.width * canvas.height;
+  const redBoundary = new Uint8Array(pixelCount);
+
+  for (let index = 0; index < pixelCount; index += 1) {
+    const pixel = index * 4;
+    const red = pixels[pixel];
+    const green = pixels[pixel + 1];
+    const blue = pixels[pixel + 2];
+    if (red > 145 && red - green > 48 && red - blue > 38 && green < 165) redBoundary[index] = 1;
+  }
+
+  // Expande levemente os traços para fechar as áreas apesar do antialiasing.
+  const sealedBoundary = redBoundary.slice();
+  const boundaryRadius = 2;
+  for (let y = 0; y < canvas.height; y += 1) {
+    for (let x = 0; x < canvas.width; x += 1) {
+      const index = y * canvas.width + x;
+      if (!redBoundary[index]) continue;
+      for (let offsetY = -boundaryRadius; offsetY <= boundaryRadius; offsetY += 1) {
+        const neighborY = y + offsetY;
+        if (neighborY < 0 || neighborY >= canvas.height) continue;
+        for (let offsetX = -boundaryRadius; offsetX <= boundaryRadius; offsetX += 1) {
+          const neighborX = x + offsetX;
+          if (neighborX < 0 || neighborX >= canvas.width) continue;
+          sealedBoundary[neighborY * canvas.width + neighborX] = 1;
+        }
+      }
+    }
+  }
+
+  const labels = new Uint32Array(pixelCount);
+  const queue = new Int32Array(pixelCount);
+  const components = [{ area: 0, touchesEdge: true }];
+  let label = 0;
+
+  for (let start = 0; start < pixelCount; start += 1) {
+    if (sealedBoundary[start] || labels[start]) continue;
+    label += 1;
+    let head = 0;
+    let tail = 0;
+    let touchesEdge = false;
+    labels[start] = label;
+    queue[tail++] = start;
+
+    while (head < tail) {
+      const index = queue[head++];
+      const x = index % canvas.width;
+      const y = Math.floor(index / canvas.width);
+      if (x === 0 || y === 0 || x === canvas.width - 1 || y === canvas.height - 1) touchesEdge = true;
+
+      const neighbors = [
+        x > 0 ? index - 1 : -1,
+        x < canvas.width - 1 ? index + 1 : -1,
+        y > 0 ? index - canvas.width : -1,
+        y < canvas.height - 1 ? index + canvas.width : -1,
+      ];
+      for (const neighbor of neighbors) {
+        if (neighbor < 0 || sealedBoundary[neighbor] || labels[neighbor]) continue;
+        labels[neighbor] = label;
+        queue[tail++] = neighbor;
+      }
+    }
+
+    components[label] = { area: tail, touchesEdge };
+  }
+
+  const poleAnchors = {
+    1: [.292, .266],
+    2: [.511, .234],
+    3: [.722, .42],
+    4: [.70, .75],
+    5: [.60, .86],
+    6: [.60, .67],
+    7: [.45, .79],
+    8: [.32, .73],
+    9: [.36, .56],
+    10: [.52, .46],
+  };
+  const minimumPoleArea = pixelCount * .004;
+  const labelToPole = new Map();
+
+  const isValidPoleLabel = (candidate) => candidate
+    && !components[candidate]?.touchesEdge
+    && components[candidate].area >= minimumPoleArea
+    && !labelToPole.has(candidate);
+
+  Object.entries(poleAnchors).forEach(([poleValue, [relativeX, relativeY]]) => {
+    const pole = Number(poleValue);
+    const anchorX = Math.round(relativeX * (canvas.width - 1));
+    const anchorY = Math.round(relativeY * (canvas.height - 1));
+    let componentLabel = labels[anchorY * canvas.width + anchorX];
+
+    if (!isValidPoleLabel(componentLabel)) {
+      componentLabel = 0;
+      const searchLimit = Math.round(Math.min(canvas.width, canvas.height) * .07);
+      for (let radius = 4; radius <= searchLimit && !componentLabel; radius += 4) {
+        const samples = Math.max(16, Math.round(radius * .8));
+        for (let sample = 0; sample < samples; sample += 1) {
+          const angle = sample / samples * Math.PI * 2;
+          const x = Math.round(anchorX + Math.cos(angle) * radius);
+          const y = Math.round(anchorY + Math.sin(angle) * radius);
+          if (x < 0 || y < 0 || x >= canvas.width || y >= canvas.height) continue;
+          const candidate = labels[y * canvas.width + x];
+          if (isValidPoleLabel(candidate)) { componentLabel = candidate; break; }
+        }
+      }
+    }
+
+    if (componentLabel) labelToPole.set(componentLabel, pole);
+  });
+
+  const regions = new Uint8Array(pixelCount);
+  for (let index = 0; index < pixelCount; index += 1) {
+    regions[index] = labelToPole.get(labels[index]) || 0;
+  }
+
+  const regionCanvas = document.createElement('canvas');
+  const regionContext = regionCanvas.getContext('2d');
+  regionCanvas.width = canvas.width;
+  regionCanvas.height = canvas.height;
+  regionCanvas.className = 'pixel-region-overlay';
+  map.insertBefore(regionCanvas, mapTooltip);
+  map.dataset.detectedPoles = String(labelToPole.size);
+  map.dataset.detectedPoleIds = [...labelToPole.values()].sort((a, b) => a - b).join(',');
+
+  let paintedPole = 0;
+  let tooltipPole = 0;
+
+  const paintRegion = (pole) => {
+    if (pole === paintedPole) return;
+    paintedPole = pole;
+    regionContext.clearRect(0, 0, regionCanvas.width, regionCanvas.height);
+    if (!pole) return;
+    const color = poleColors[pole];
+    const layer = regionContext.createImageData(regionCanvas.width, regionCanvas.height);
+    for (let index = 0; index < regions.length; index += 1) {
+      if (regions[index] !== pole) continue;
+      const pixel = index * 4;
+      layer.data[pixel] = color[0];
+      layer.data[pixel + 1] = color[1];
+      layer.data[pixel + 2] = color[2];
+      layer.data[pixel + 3] = color[3];
+    }
+    regionContext.putImageData(layer, 0, 0);
+  };
+
+  map.classList.add('pointer-ready');
+  map.addEventListener('pointermove', (event) => {
+    const rect = mapImage.getBoundingClientRect();
+    const x = Math.floor((event.clientX - rect.left) / rect.width * canvas.width);
+    const y = Math.floor((event.clientY - rect.top) / rect.height * canvas.height);
+    const pole = x >= 0 && y >= 0 && x < canvas.width && y < canvas.height
+      ? regions[y * canvas.width + x]
+      : 0;
+    paintRegion(pole);
+    if (!pole) { mapTooltip.classList.remove('visible'); return; }
+
+    if (pole !== tooltipPole) {
+      tooltipPole = pole;
+      const factor = poleFactors[pole];
+      const rows = classRows.map(([name, baseValue]) => {
+        const finalValue = Math.round(baseValue * factor / 500) * 500;
+        return `<tr><th>${name}</th><td>abr.-26</td><td>${valueFormatter.format(finalValue)}</td></tr>`;
+      }).join('');
+      mapTooltip.innerHTML = `<b>Polo ${pole}</b><strong>Classes e valores da terra</strong><div class="tooltip-table-wrap"><table><thead><tr><th>Classe</th><th>Data</th><th>Valor</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+    }
+
+    mapTooltip.classList.add('visible');
+
+    if (window.innerWidth > 800) {
+      const viewportMargin = 16;
+      const tooltipGap = 14;
+      const tooltipWidth = mapTooltip.offsetWidth;
+      const tooltipHeight = mapTooltip.offsetHeight;
+      const maximumLeft = Math.max(viewportMargin, window.innerWidth - tooltipWidth - viewportMargin);
+      const left = Math.max(viewportMargin, Math.min(maximumLeft, event.clientX - tooltipWidth / 2));
+      let top = event.clientY - tooltipHeight - tooltipGap;
+
+      if (top < viewportMargin) top = event.clientY + tooltipGap;
+      top = Math.max(
+        viewportMargin,
+        Math.min(window.innerHeight - tooltipHeight - viewportMargin, top),
+      );
+
+      mapTooltip.style.left = `${left}px`;
+      mapTooltip.style.top = `${top}px`;
+    }
+  });
+
+  map.addEventListener('pointerleave', () => {
+    paintRegion(0);
+    tooltipPole = 0;
+    mapTooltip.classList.remove('visible');
+  });
+}
+
 async function preparePixelMap() {
   if (!map || !mapImage || !mapTooltip || !mapImage.naturalWidth) return;
+  if (map.classList.contains('has-red-boundaries')) {
+    prepareRedBoundaryMap();
+    return;
+  }
   const maskImage = new Image();
   const maskReady = new Promise((resolve, reject) => {
     maskImage.addEventListener('load', resolve, { once: true });
