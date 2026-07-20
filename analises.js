@@ -289,6 +289,27 @@ function prepareRedBoundaryMap() {
 
   let paintedPole = 0;
   let tooltipPole = 0;
+  let countAnimation = 0;
+
+  const animateTooltipValues = () => {
+    const animationId = ++countAnimation;
+    const cells = [...mapTooltip.querySelectorAll('[data-value]')];
+    const duration = 750;
+    const startedAt = performance.now();
+
+    const update = (now) => {
+      if (animationId !== countAnimation) return;
+      const progress = Math.min((now - startedAt) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      cells.forEach((cell) => {
+        const finalValue = Number(cell.dataset.value);
+        cell.textContent = valueFormatter.format(Math.round(finalValue * eased));
+      });
+      if (progress < 1) requestAnimationFrame(update);
+    };
+
+    requestAnimationFrame(update);
+  };
 
   const paintRegion = (pole) => {
     if (pole === paintedPole) return;
@@ -317,45 +338,60 @@ function prepareRedBoundaryMap() {
       ? regions[y * canvas.width + x]
       : 0;
     paintRegion(pole);
-    if (!pole) { mapTooltip.classList.remove('visible'); return; }
+    if (!pole) {
+      tooltipPole = 0;
+      countAnimation += 1;
+      mapTooltip.classList.remove('visible');
+      return;
+    }
 
     if (pole !== tooltipPole) {
       tooltipPole = pole;
       const factor = poleFactors[pole];
       const rows = classRows.map(([name, baseValue]) => {
         const finalValue = Math.round(baseValue * factor / 500) * 500;
-        return `<tr><th>${name}</th><td>abr.-26</td><td>${valueFormatter.format(finalValue)}</td></tr>`;
+        return `<tr><th>${name}</th><td data-value="${finalValue}">0,00</td></tr>`;
       }).join('');
-      mapTooltip.innerHTML = `<b>Polo ${pole}</b><strong>Classes e valores da terra</strong><div class="tooltip-table-wrap"><table><thead><tr><th>Classe</th><th>Data</th><th>Valor</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+      mapTooltip.innerHTML = `<b>Polo ${pole}</b><strong>Classes e valores da terra</strong><small>Referência abr./2026</small><div class="tooltip-table-wrap"><table><thead><tr><th>Classe</th><th>Valor</th></tr></thead><tbody>${rows}</tbody></table></div><p class="tooltip-disclaimer">Valores meramente demonstrativos. Não representam referências reais de mercado.</p>`;
+      animateTooltipValues();
     }
 
     mapTooltip.classList.add('visible');
 
     if (window.innerWidth > 800) {
       const viewportMargin = 16;
-      const tooltipGap = 14;
-      const tooltipWidth = mapTooltip.offsetWidth;
-      const tooltipHeight = mapTooltip.offsetHeight;
-      const maximumLeft = Math.max(viewportMargin, window.innerWidth - tooltipWidth - viewportMargin);
-      const left = Math.max(viewportMargin, Math.min(maximumLeft, event.clientX - tooltipWidth / 2));
-      let top = event.clientY - tooltipHeight - tooltipGap;
+      const panelWidth = Math.min(390, Math.max(180, rect.left - viewportMargin));
+      mapTooltip.style.width = `${panelWidth}px`;
+      mapTooltip.style.left = `${rect.left - panelWidth}px`;
 
-      if (top < viewportMargin) top = event.clientY + tooltipGap;
-      top = Math.max(
-        viewportMargin,
-        Math.min(window.innerHeight - tooltipHeight - viewportMargin, top),
-      );
-
-      mapTooltip.style.left = `${left}px`;
-      mapTooltip.style.top = `${top}px`;
+      const tooltipHalfHeight = mapTooltip.offsetHeight / 2;
+      const imageCenter = rect.top + rect.height / 2;
+      const minimumCenter = viewportMargin + tooltipHalfHeight;
+      const maximumCenter = window.innerHeight - viewportMargin - tooltipHalfHeight;
+      mapTooltip.style.top = `${Math.max(minimumCenter, Math.min(maximumCenter, imageCenter))}px`;
+    } else {
+      mapTooltip.style.removeProperty('width');
+      mapTooltip.style.removeProperty('left');
+      mapTooltip.style.removeProperty('top');
     }
   });
 
   map.addEventListener('pointerleave', () => {
     paintRegion(0);
     tooltipPole = 0;
+    countAnimation += 1;
     mapTooltip.classList.remove('visible');
   });
+
+  window.addEventListener('resize', () => {
+    paintRegion(0);
+    tooltipPole = 0;
+    countAnimation += 1;
+    mapTooltip.classList.remove('visible');
+    mapTooltip.style.removeProperty('width');
+    mapTooltip.style.removeProperty('left');
+    mapTooltip.style.removeProperty('top');
+  }, { passive: true });
 }
 
 async function preparePixelMap() {

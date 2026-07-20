@@ -33,7 +33,10 @@
 .land-price-map.has-red-boundaries .map-pole{display:none}
 .land-price-map.has-red-boundaries .pixel-map-tooltip{max-height:calc(100dvh - 40px);overflow:auto}
 .land-price-map.has-red-boundaries.pointer-ready{cursor:crosshair}
-@media(min-width:801px){.land-price-map.has-red-boundaries .pixel-map-tooltip{position:fixed;transform:none;max-width:calc(100vw - 32px);max-height:calc(100dvh - 32px)}}
+.land-price-map.has-red-boundaries .pixel-map-tooltip>small{display:block;margin:-10px 0 18px;color:#b6bdb8;font:400 9px/1.4 var(--mono);letter-spacing:.04em;text-transform:uppercase}
+.land-price-map.has-red-boundaries .pixel-map-tooltip th:last-child,.land-price-map.has-red-boundaries .pixel-map-tooltip td:last-child{text-align:right}
+.tooltip-disclaimer{margin:16px 0 0;padding-top:14px;border-top:1px solid rgba(255,255,255,.16);color:#b6bdb8;font:400 8.5px/1.55 var(--mono);letter-spacing:.02em}
+@media(min-width:801px){.land-price-map.has-red-boundaries .pixel-map-tooltip{position:fixed;transform:translateY(-50%);max-width:calc(100vw - 32px);max-height:calc(100dvh - 32px)}}
 .pixel-region-overlay{left:0;top:0;right:auto;bottom:auto;width:100%;height:100%}
 @media(min-width:801px) and (max-height:850px){.land-price-map{width:min(100%,82vh)}.land-price-block{padding-top:8vh;padding-bottom:13vh}.land-price-block .analysis-content header{margin-bottom:20px}}
 @media(max-width:800px){.land-price-map{width:100%}}
