@@ -143,7 +143,7 @@ const classRows = [
   ['Pastagem de Alto Suporte', 30000],
   ['Pastagem de Médio Suporte', 15000],
   ['Silvicultura', 25000],
-  ['Remanescente de Vegetação', 75000],
+  ['Remanescente de Vegetação', 7000],
 ];
 const poleFactors = { 1: 1, 2: .94, 3: .88, 4: .81, 5: .74, 6: .68, 7: .62, 8: .56, 9: .51, 10: .46 };
 const valueFormatter = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -265,6 +265,27 @@ async function prepareVectorBoundaries() {
     return { path, pole: feature.properties.polo, properties: feature.properties };
   });
   let highlightedPole = 0;
+  let priceAnimation = 0;
+
+  const animatePriceValues = () => {
+    const animationId = ++priceAnimation;
+    const cells = [...mapTooltip.querySelectorAll('[data-value]')];
+    const duration = 1600;
+    const startedAt = performance.now();
+
+    const update = (now) => {
+      if (animationId !== priceAnimation) return;
+      const progress = Math.min((now - startedAt) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      cells.forEach((cell) => {
+        const finalValue = Number(cell.dataset.value);
+        cell.textContent = valueFormatter.format(Math.round(finalValue * eased));
+      });
+      if (progress < 1) requestAnimationFrame(update);
+    };
+
+    requestAnimationFrame(update);
+  };
 
   const paintStatePrompt = () => {
     highlightContext.clearRect(0, 0, highlightCanvas.width, highlightCanvas.height);
@@ -299,11 +320,12 @@ async function prepareVectorBoundaries() {
     const factor = poleFactors[poleEntry.pole];
     const rows = classRows.map(([name, baseValue]) => {
       const finalValue = Math.round(baseValue * factor / 500) * 500;
-      return `<tr><th>${name}</th><td>abr.-26</td><td>${valueFormatter.format(finalValue)}</td></tr>`;
+      return `<tr><th>${name}</th><td data-value="${finalValue}">0,00</td></tr>`;
     }).join('');
-    mapTooltip.innerHTML = `<b>Polo ${poleEntry.pole} · ${poleEntry.properties.nome}</b><strong>Classes e valores da terra</strong><small>${poleEntry.properties.referencia}</small><div class="tooltip-table-wrap"><table><thead><tr><th>Classe</th><th>Data</th><th>Valor</th></tr></thead><tbody>${rows}</tbody></table></div><p class="tooltip-disclaimer">Valores meramente demonstrativos. Não representam referências reais de mercado.</p>`;
+    mapTooltip.innerHTML = `<b>Polo ${String(poleEntry.pole).padStart(2, '0')}</b><strong>Classes e valores da terra</strong><small>${poleEntry.properties.referencia}</small><div class="tooltip-table-wrap"><table><thead><tr><th>Classe</th><th>Valor/ha</th></tr></thead><tbody>${rows}</tbody></table></div><p class="tooltip-disclaimer">Valores meramente demonstrativos. Não representam referências reais de mercado.</p>`;
     mapTooltip.classList.add('visible');
     mapTooltip.setAttribute('aria-hidden', 'false');
+    animatePriceValues();
   };
 
   paintStatePrompt();
@@ -318,7 +340,7 @@ async function prepareVectorBoundaries() {
     const poleEntry = polePaths.find(({ path }) => highlightContext.isPointInPath(path, x, y, 'evenodd'));
     paintHighlight(poleEntry);
     if (poleEntry) {
-      cursorLabel.textContent = `Polo ${poleEntry.pole} · ${poleEntry.properties.nome}`;
+      cursorLabel.textContent = `Polo ${String(poleEntry.pole).padStart(2, '0')}`;
       cursorLabel.style.left = `${event.clientX - rect.left}px`;
       cursorLabel.style.top = `${event.clientY - rect.top}px`;
       cursorLabel.classList.add('visible');
@@ -619,7 +641,7 @@ function prepareRedBoundaryMap(boundaryImage) {
         const finalValue = Math.round(baseValue * factor / 500) * 500;
         return `<tr><th>${name}</th><td data-value="${finalValue}">0,00</td></tr>`;
       }).join('');
-      mapTooltip.innerHTML = `<b>Polo ${pole}</b><strong>Classes e valores da terra</strong><small>Referência abr./2026</small><div class="tooltip-table-wrap"><table><thead><tr><th>Classe</th><th>Valor</th></tr></thead><tbody>${rows}</tbody></table></div><p class="tooltip-disclaimer">Valores meramente demonstrativos. Não representam referências reais de mercado.</p>`;
+      mapTooltip.innerHTML = `<b>Polo ${pole}</b><strong>Classes e valores da terra</strong><small>Referência abr./2026</small><div class="tooltip-table-wrap"><table><thead><tr><th>Classe</th><th>Valor/ha</th></tr></thead><tbody>${rows}</tbody></table></div><p class="tooltip-disclaimer">Valores meramente demonstrativos. Não representam referências reais de mercado.</p>`;
       animateTooltipValues();
     }
 
@@ -865,9 +887,9 @@ async function preparePixelMap() {
       const factor = poleFactors[pole];
       const rows = classRows.map(([name, baseValue]) => {
         const finalValue = Math.round(baseValue * factor / 500) * 500;
-        return `<tr><th>${name}</th><td>abr.-26</td><td data-value="${finalValue}">0,00</td></tr>`;
+        return `<tr><th>${name}</th><td data-value="${finalValue}">0,00</td></tr>`;
       }).join('');
-      mapTooltip.innerHTML = `<b>Polo ${pole}</b><strong>Classes e valores da terra</strong><div class="tooltip-table-wrap"><table><thead><tr><th>Classe</th><th>Data</th><th>Valor</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+      mapTooltip.innerHTML = `<b>Polo ${pole}</b><strong>Classes e valores da terra</strong><div class="tooltip-table-wrap"><table><thead><tr><th>Classe</th><th>Valor/ha</th></tr></thead><tbody>${rows}</tbody></table></div>`;
       mapTooltip.classList.remove('no-data');
       animateTooltipValues();
     }
