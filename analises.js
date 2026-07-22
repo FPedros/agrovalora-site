@@ -95,9 +95,8 @@ analysisNavigationLinks.forEach((link) => link.addEventListener('click', (event)
   const navigationId = ++tabNavigationId;
   const title = section.querySelector('.analysis-content header') || section;
   const tabsHeight = analysisTabs?.offsetHeight || (window.innerWidth <= 800 ? 48 : 42);
-  const availableHeight = window.innerHeight - tabsHeight;
-  const responsiveGap = Math.max(48, Math.min(96, availableHeight * .1));
-  const titleTop = tabsHeight + responsiveGap;
+  const titleGap = window.innerWidth <= 800 ? 22 : 30;
+  const titleTop = tabsHeight + titleGap;
   const offset = -titleTop;
 
   analysisLinks.forEach((tabLink) => tabLink.classList.toggle('active', tabLink.hash === link.hash));
@@ -161,14 +160,223 @@ const poleColors = {
   10: [232, 232, 112, 105],
 };
 
-function prepareRedBoundaryMap() {
+async function prepareVectorBoundaries() {
+  const [polesResponse, stateResponse] = await Promise.all([
+    fetch('/polos-agro.geojson'),
+    fetch('/mt-limite.geojson'),
+  ]);
+  if (!polesResponse.ok || !stateResponse.ok) throw new Error('Não foi possível carregar os limites territoriais.');
+  const [polesCollection, stateCollection] = await Promise.all([
+    polesResponse.json(),
+    stateResponse.json(),
+  ]);
+  const canvas = document.createElement('canvas');
+  const context = canvas.getContext('2d');
+  canvas.width = mapImage.naturalWidth;
+  canvas.height = mapImage.naturalHeight;
+  canvas.className = 'map-boundary-overlay';
+
+  const worldSize = 1024 * Math.pow(2, 3.7);
+  const project = ([longitude, latitude]) => {
+    const sinLatitude = Math.sin(latitude * Math.PI / 180);
+    const worldX = (longitude + 180) / 360 * worldSize;
+    const worldY = (0.5 - Math.log((1 + sinLatitude) / (1 - sinLatitude)) / (4 * Math.PI)) * worldSize;
+    const centerLongitude = (-57.5 + 180) / 360 * worldSize;
+    const centerSinLatitude = Math.sin(-11 * Math.PI / 180);
+    const centerLatitude = (0.5 - Math.log((1 + centerSinLatitude) / (1 - centerSinLatitude)) / (4 * Math.PI)) * worldSize;
+    return [
+      worldX - centerLongitude + canvas.width / 2,
+      worldY - centerLatitude + canvas.height / 2,
+    ];
+  };
+
+  const traceRing = (target, ring) => {
+    ring.forEach((coordinate, index) => {
+      const [x, y] = project(coordinate);
+      if (index === 0) target.moveTo(x, y);
+      else target.lineTo(x, y);
+    });
+    target.closePath();
+  };
+
+  context.lineJoin = 'round';
+  context.lineCap = 'round';
+  const getGeometries = (collection) => collection.features?.map((feature) => feature.geometry)
+    || collection.geometries
+    || [collection];
+  const drawCollection = (collection, { color, width, shadowColor = 'transparent', shadowBlur = 0 }) => {
+    context.strokeStyle = color;
+    context.lineWidth = width;
+    context.shadowColor = shadowColor;
+    context.shadowBlur = shadowBlur;
+    context.shadowOffsetX = 0;
+    context.shadowOffsetY = 0;
+    getGeometries(collection).forEach((geometry) => {
+      const polygons = geometry.type === 'MultiPolygon'
+        ? geometry.coordinates
+        : [geometry.coordinates];
+      context.beginPath();
+      polygons.forEach((polygon) => polygon.forEach((ring) => traceRing(context, ring)));
+      context.stroke();
+    });
+  };
+
+  drawCollection(polesCollection, {
+    color: 'rgba(139, 145, 140, 0.68)',
+    width: 1,
+  });
+  drawCollection(stateCollection, {
+    color: 'rgba(47, 107, 71, 0.95)',
+    width: 2.4,
+    shadowColor: 'rgba(18, 36, 24, 0.3)',
+    shadowBlur: 6,
+  });
+
+  map.insertBefore(canvas, mapTooltip);
+
+  const highlightCanvas = document.createElement('canvas');
+  const highlightContext = highlightCanvas.getContext('2d');
+  highlightCanvas.width = canvas.width;
+  highlightCanvas.height = canvas.height;
+  highlightCanvas.className = 'pixel-region-overlay';
+  map.insertBefore(highlightCanvas, mapTooltip);
+  const cursorLabel = document.createElement('div');
+  cursorLabel.className = 'map-cursor-label';
+  map.insertBefore(cursorLabel, mapTooltip);
+  const statePrompt = document.createElement('div');
+  statePrompt.className = 'map-state-prompt';
+  statePrompt.innerHTML = '<strong>Passe o mouse</strong><small>Explore os valores de cada polo</small>';
+  map.insertBefore(statePrompt, mapTooltip);
+
+  const statePath = new Path2D();
+  getGeometries(stateCollection).forEach((geometry) => {
+    const polygons = geometry.type === 'MultiPolygon'
+      ? geometry.coordinates
+      : [geometry.coordinates];
+    polygons.forEach((polygon) => polygon.forEach((ring) => traceRing(statePath, ring)));
+  });
+
+  const polePaths = polesCollection.features.map((feature) => {
+    const path = new Path2D();
+    const polygons = feature.geometry.type === 'MultiPolygon'
+      ? feature.geometry.coordinates
+      : [feature.geometry.coordinates];
+    polygons.forEach((polygon) => polygon.forEach((ring) => traceRing(path, ring)));
+    return { path, pole: feature.properties.polo, properties: feature.properties };
+  });
+  let highlightedPole = 0;
+
+  const paintStatePrompt = () => {
+    highlightContext.clearRect(0, 0, highlightCanvas.width, highlightCanvas.height);
+    highlightContext.fillStyle = 'rgba(13, 37, 27, 0.58)';
+    highlightContext.strokeStyle = 'rgba(182, 214, 92, 0.72)';
+    highlightContext.lineWidth = 2.4;
+    highlightContext.lineJoin = 'round';
+    highlightContext.fill(statePath, 'evenodd');
+    highlightContext.stroke(statePath);
+    statePrompt.classList.remove('hidden');
+  };
+
+  const paintHighlight = (poleEntry) => {
+    const nextPole = poleEntry?.pole || 0;
+    if (nextPole === highlightedPole) return;
+    highlightedPole = nextPole;
+    highlightContext.clearRect(0, 0, highlightCanvas.width, highlightCanvas.height);
+    if (!poleEntry) {
+      paintStatePrompt();
+      mapTooltip.classList.remove('visible');
+      mapTooltip.setAttribute('aria-hidden', 'true');
+      return;
+    }
+    statePrompt.classList.add('hidden');
+    highlightContext.fillStyle = 'rgba(47, 107, 71, 0.2)';
+    highlightContext.strokeStyle = 'rgba(47, 107, 71, 0.9)';
+    highlightContext.lineWidth = 2;
+    highlightContext.lineJoin = 'round';
+    highlightContext.fill(poleEntry.path, 'evenodd');
+    highlightContext.stroke(poleEntry.path);
+
+    const factor = poleFactors[poleEntry.pole];
+    const rows = classRows.map(([name, baseValue]) => {
+      const finalValue = Math.round(baseValue * factor / 500) * 500;
+      return `<tr><th>${name}</th><td>abr.-26</td><td>${valueFormatter.format(finalValue)}</td></tr>`;
+    }).join('');
+    mapTooltip.innerHTML = `<b>Polo ${poleEntry.pole} · ${poleEntry.properties.nome}</b><strong>Classes e valores da terra</strong><small>${poleEntry.properties.referencia}</small><div class="tooltip-table-wrap"><table><thead><tr><th>Classe</th><th>Data</th><th>Valor</th></tr></thead><tbody>${rows}</tbody></table></div><p class="tooltip-disclaimer">Valores meramente demonstrativos. Não representam referências reais de mercado.</p>`;
+    mapTooltip.classList.add('visible');
+    mapTooltip.setAttribute('aria-hidden', 'false');
+  };
+
+  paintStatePrompt();
+
+  map.addEventListener('pointermove', (event) => {
+    const rect = mapImage.getBoundingClientRect();
+    const coverScale = Math.max(rect.width / canvas.width, rect.height / canvas.height);
+    const cropX = (canvas.width * coverScale - rect.width) / 2;
+    const cropY = (canvas.height * coverScale - rect.height) / 2;
+    const x = (event.clientX - rect.left + cropX) / coverScale;
+    const y = (event.clientY - rect.top + cropY) / coverScale;
+    const poleEntry = polePaths.find(({ path }) => highlightContext.isPointInPath(path, x, y, 'evenodd'));
+    paintHighlight(poleEntry);
+    if (poleEntry) {
+      cursorLabel.textContent = `Polo ${poleEntry.pole} · ${poleEntry.properties.nome}`;
+      cursorLabel.style.left = `${event.clientX - rect.left}px`;
+      cursorLabel.style.top = `${event.clientY - rect.top}px`;
+      cursorLabel.classList.add('visible');
+    } else {
+      cursorLabel.classList.remove('visible');
+    }
+
+    if (poleEntry && window.innerWidth > 800) {
+      const viewportMargin = 16;
+      const panelWidth = Math.min(390, Math.max(220, rect.left - viewportMargin));
+      mapTooltip.style.width = `${panelWidth}px`;
+      mapTooltip.style.left = `${Math.max(viewportMargin, rect.left - panelWidth)}px`;
+      const tooltipHalfHeight = mapTooltip.offsetHeight / 2;
+      const minimumCenter = viewportMargin + tooltipHalfHeight;
+      const maximumCenter = window.innerHeight - viewportMargin - tooltipHalfHeight;
+      const mapCenter = rect.top + rect.height / 2;
+      const desiredCenter = Math.max(minimumCenter, Math.min(maximumCenter, mapCenter));
+      mapTooltip.style.top = `${desiredCenter}px`;
+    }
+  });
+  map.addEventListener('pointerleave', () => {
+    paintHighlight(null);
+    cursorLabel.classList.remove('visible');
+    mapTooltip.style.removeProperty('width');
+    mapTooltip.style.removeProperty('left');
+    mapTooltip.style.removeProperty('top');
+  });
+  map.classList.add('pointer-ready');
+}
+
+function prepareRedBoundaryMap(boundaryImage) {
   const maxDetectionWidth = 1200;
-  const scale = Math.min(1, maxDetectionWidth / mapImage.naturalWidth);
   const canvas = document.createElement('canvas');
   const context = canvas.getContext('2d', { willReadFrequently: true });
-  canvas.width = Math.round(mapImage.naturalWidth * scale);
-  canvas.height = Math.round(mapImage.naturalHeight * scale);
-  context.drawImage(mapImage, 0, 0, canvas.width, canvas.height);
+  canvas.width = Math.min(maxDetectionWidth, mapImage.naturalWidth);
+  canvas.height = Math.round(canvas.width * mapImage.naturalHeight / mapImage.naturalWidth);
+
+  // Reprojeta o recorte histórico dos polos para o enquadramento continental
+  // da imagem Mapbox (centro -57.5/-11, zoom 3.7).
+  const outputScale = canvas.width / mapImage.naturalWidth;
+  const worldSize = 1024 * Math.pow(2, 3.7) * outputScale;
+  const project = (longitude, latitude) => {
+    const sinLatitude = Math.sin(latitude * Math.PI / 180);
+    return {
+      x: (longitude + 180) / 360 * worldSize,
+      y: (0.5 - Math.log((1 + sinLatitude) / (1 - sinLatitude)) / (4 * Math.PI)) * worldSize,
+    };
+  };
+  const mapCenter = project(-57.5, -11);
+  const viewportLeft = mapCenter.x - canvas.width / 2;
+  const viewportTop = mapCenter.y - canvas.height / 2;
+  const sourceNorthWest = project(-64.9, -6.9);
+  const sourceSouthEast = project(-46.95, -18.35);
+  const boundaryOffsetX = sourceNorthWest.x - viewportLeft;
+  const boundaryOffsetY = sourceNorthWest.y - viewportTop;
+  const boundaryWidth = sourceSouthEast.x - sourceNorthWest.x;
+  const boundaryHeight = sourceSouthEast.y - sourceNorthWest.y;
+  context.drawImage(boundaryImage, boundaryOffsetX, boundaryOffsetY, boundaryWidth, boundaryHeight);
 
   const pixels = context.getImageData(0, 0, canvas.width, canvas.height).data;
   const pixelCount = canvas.width * canvas.height;
@@ -200,6 +408,23 @@ function prepareRedBoundaryMap() {
       }
     }
   }
+
+  const boundaryCanvas = document.createElement('canvas');
+  const boundaryContext = boundaryCanvas.getContext('2d');
+  boundaryCanvas.width = canvas.width;
+  boundaryCanvas.height = canvas.height;
+  boundaryCanvas.className = 'map-boundary-overlay';
+  const boundaryLayer = boundaryContext.createImageData(canvas.width, canvas.height);
+  for (let index = 0; index < pixelCount; index += 1) {
+    if (!sealedBoundary[index]) continue;
+    const pixel = index * 4;
+    boundaryLayer.data[pixel] = 47;
+    boundaryLayer.data[pixel + 1] = 107;
+    boundaryLayer.data[pixel + 2] = 71;
+    boundaryLayer.data[pixel + 3] = 255;
+  }
+  boundaryContext.putImageData(boundaryLayer, 0, 0);
+  map.insertBefore(boundaryCanvas, mapTooltip);
 
   const labels = new Uint32Array(pixelCount);
   const queue = new Int32Array(pixelCount);
@@ -259,8 +484,8 @@ function prepareRedBoundaryMap() {
 
   Object.entries(poleAnchors).forEach(([poleValue, [relativeX, relativeY]]) => {
     const pole = Number(poleValue);
-    const anchorX = Math.round(relativeX * (canvas.width - 1));
-    const anchorY = Math.round(relativeY * (canvas.height - 1));
+    const anchorX = Math.round(boundaryOffsetX + relativeX * boundaryWidth);
+    const anchorY = Math.round(boundaryOffsetY + relativeY * boundaryHeight);
     let componentLabel = labels[anchorY * canvas.width + anchorX];
 
     if (!isValidPoleLabel(componentLabel)) {
@@ -369,8 +594,13 @@ function prepareRedBoundaryMap() {
   map.classList.add('pointer-ready');
   map.addEventListener('pointermove', (event) => {
     const rect = mapImage.getBoundingClientRect();
-    const x = Math.floor((event.clientX - rect.left) / rect.width * canvas.width);
-    const y = Math.floor((event.clientY - rect.top) / rect.height * canvas.height);
+    const containScale = Math.min(rect.width / canvas.width, rect.height / canvas.height);
+    const renderedWidth = canvas.width * containScale;
+    const renderedHeight = canvas.height * containScale;
+    const offsetX = (rect.width - renderedWidth) / 2;
+    const offsetY = (rect.height - renderedHeight) / 2;
+    const x = Math.floor((event.clientX - rect.left - offsetX) / containScale);
+    const y = Math.floor((event.clientY - rect.top - offsetY) / containScale);
     const pole = x >= 0 && y >= 0 && x < canvas.width && y < canvas.height
       ? regions[y * canvas.width + x]
       : 0;
@@ -433,8 +663,19 @@ function prepareRedBoundaryMap() {
 
 async function preparePixelMap() {
   if (!map || !mapImage || !mapTooltip || !mapImage.naturalWidth) return;
+  if (map.classList.contains('boundaries-only')) {
+    await prepareVectorBoundaries();
+    return;
+  }
   if (map.classList.contains('has-red-boundaries')) {
-    prepareRedBoundaryMap();
+    const boundaryImage = new Image();
+    const boundaryReady = new Promise((resolve, reject) => {
+      boundaryImage.addEventListener('load', resolve, { once: true });
+      boundaryImage.addEventListener('error', reject, { once: true });
+    });
+    boundaryImage.src = '/mt-boundaries.webp';
+    await boundaryReady;
+    prepareRedBoundaryMap(boundaryImage);
     return;
   }
   const maskImage = new Image();
@@ -644,6 +885,7 @@ async function preparePixelMap() {
 
 if (map && mapImage) {
   const initializeMap = () => {
+    if (map.classList.contains('poles-disabled')) return;
     if (mapImage.complete) preparePixelMap();
     else mapImage.addEventListener('load', preparePixelMap, { once: true });
   };

@@ -21,16 +21,16 @@
 
 /* O mouse usa a detecção exata das regiões fechadas da imagem. */
 .land-price-map.pointer-ready .map-pole{pointer-events:none}
-.pixel-region-overlay{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:2}
+.pixel-region-overlay,.map-boundary-overlay{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;pointer-events:none;z-index:2}
 .pixel-map-tooltip{position:absolute;z-index:30;width:min(620px,76vw);padding:24px;background:var(--ink);color:#fff;box-shadow:0 16px 40px rgba(24,32,26,.2);opacity:0;visibility:hidden;pointer-events:none;transform:translate(-50%,calc(-100% - 16px));transition:opacity .12s;left:0;top:0}.pixel-map-tooltip.visible{opacity:1;visibility:visible}.pixel-map-tooltip b{display:block;color:var(--lime);font:400 11px var(--mono);margin-bottom:10px}.pixel-map-tooltip>strong{display:block;font-size:16px;line-height:1.35;font-weight:500;margin-bottom:19px}.tooltip-table-wrap{overflow-x:auto}.pixel-map-tooltip table{width:100%;border-collapse:collapse}.pixel-map-tooltip th,.pixel-map-tooltip td{padding:10px 14px 10px 0;border-top:1px solid rgba(255,255,255,.16);text-align:left;font:300 11.5px/1.4 var(--mono);white-space:nowrap}.pixel-map-tooltip tbody th{font-weight:400;white-space:normal}.pixel-map-tooltip thead th{color:#b6bdb8;font-size:9.5px;text-transform:uppercase}.pixel-map-tooltip td:last-child{text-align:right;font-size:12.5px;font-weight:500}.pixel-map-tooltip.no-data{background:#59605b}.pixel-map-tooltip.no-data b{color:#d5d9d5}
 @media(max-width:800px){.pixel-map-tooltip{position:fixed;left:20px!important;right:20px;top:auto!important;bottom:20px;width:auto;transform:none}}
 
 /* Dimensionamento relativo à altura disponível da tela. */
 .land-price-map{width:min(100%,90vh);aspect-ratio:3451/2394;margin-inline:auto;border:0;box-shadow:none}
 .land-price-map img{width:100%;height:100%;object-fit:fill;opacity:1;filter:none}
-.land-price-map.has-red-boundaries{width:min(100%,93svh,1080px);aspect-ratio:3/2;overflow:visible}
+.land-price-map.has-red-boundaries{width:100%;height:auto;aspect-ratio:16/9;overflow:visible;background:#fafafa}
 .land-price-map.has-red-boundaries img{object-fit:cover}
-.map-state-blur{position:absolute;z-index:1;inset:0;width:100%;height:100%;pointer-events:none;transition:opacity .35s ease}
+.map-state-blur{position:absolute;z-index:1;inset:0;width:100%;height:100%;object-fit:fill;pointer-events:none;transition:opacity .35s ease}
 .land-price-map.map-interacted .map-state-blur{opacity:0}
 .land-price-map.has-red-boundaries .map-pole{display:none}
 .land-price-map.has-red-boundaries .pixel-map-tooltip{max-height:calc(100dvh - 40px);overflow:auto}
@@ -38,10 +38,13 @@
 .map-interaction-hint{position:absolute;z-index:12;left:50%;top:50%;padding:18px 24px;background:rgba(24,32,26,.9);color:#fff;text-align:center;pointer-events:none;transform:translate(-50%,-50%);transition:opacity .25s ease,visibility .25s ease;box-shadow:0 14px 36px rgba(24,32,26,.2)}
 .map-interaction-hint span,.map-interaction-hint small{display:block}.map-interaction-hint span{font:500 10px/1.4 var(--mono);letter-spacing:.06em;text-transform:uppercase}.map-interaction-hint small{margin-top:7px;color:#c8cec9;font:300 9px/1.4 var(--mono)}
 .land-price-map.map-interacted .map-interaction-hint{opacity:0;visibility:hidden}
+.land-price-map.boundaries-only .map-interaction-hint,.land-price-map.boundaries-only .map-state-blur{display:none}
+.map-cursor-label{position:absolute;z-index:24;padding:8px 10px;background:rgba(24,32,26,.92);color:#fff;pointer-events:none;opacity:0;visibility:hidden;transform:translate(12px,12px);transition:opacity .12s ease;font:500 9px/1.3 var(--mono);letter-spacing:.03em;white-space:nowrap}.map-cursor-label.visible{opacity:1;visibility:visible}
+.map-state-prompt{position:absolute;z-index:23;left:53%;top:57%;min-width:210px;padding:18px 22px;background:rgba(13,37,27,.94);color:#fff;text-align:center;pointer-events:none;transform:translate(-50%,-50%);box-shadow:0 0 0 1px rgba(182,214,92,.6),0 14px 38px rgba(13,37,27,.32);transition:opacity .22s ease,visibility .22s ease;animation:map-prompt-pulse 1.8s ease-in-out infinite}.map-state-prompt strong,.map-state-prompt small{display:block}.map-state-prompt strong{color:var(--lime);font:500 11px/1.35 var(--mono);letter-spacing:.08em;text-transform:uppercase}.map-state-prompt small{margin-top:7px;color:#d8ded9;font:300 9px/1.4 var(--mono)}.map-state-prompt.hidden{opacity:0;visibility:hidden;animation:none}@keyframes map-prompt-pulse{0%,100%{box-shadow:0 0 0 1px rgba(182,214,92,.45),0 14px 38px rgba(13,37,27,.3)}50%{box-shadow:0 0 0 7px rgba(182,214,92,.12),0 18px 46px rgba(13,37,27,.42)}}
 .land-price-map.has-red-boundaries .pixel-map-tooltip>small{display:block;margin:-10px 0 18px;color:#b6bdb8;font:400 9px/1.4 var(--mono);letter-spacing:.04em;text-transform:uppercase}
 .land-price-map.has-red-boundaries .pixel-map-tooltip th:last-child,.land-price-map.has-red-boundaries .pixel-map-tooltip td:last-child{text-align:right}
 .tooltip-disclaimer{margin:16px 0 0;padding-top:14px;border-top:1px solid rgba(255,255,255,.16);color:#b6bdb8;font:400 8.5px/1.55 var(--mono);letter-spacing:.02em}
 @media(min-width:801px){.land-price-map.has-red-boundaries .pixel-map-tooltip{position:fixed;transform:translateY(-50%);max-width:calc(100vw - 32px);max-height:calc(100dvh - 32px)}}
 .pixel-region-overlay{left:0;top:0;right:auto;bottom:auto;width:100%;height:100%}
 @media(min-width:801px) and (max-height:850px){.land-price-map{width:min(100%,82vh)}.land-price-block{padding-top:8vh;padding-bottom:13vh}.land-price-block .analysis-content header{margin-bottom:20px}}
-@media(max-width:800px){.land-price-map{width:100%}.map-interaction-hint span{font-size:0}.map-interaction-hint span:after{content:"Toque sobre o estado";font-size:10px}}
+@media(max-width:800px){.land-price-map{width:100%}.land-price-map.has-red-boundaries{height:auto;min-height:0}.map-cursor-label{display:none}.map-state-prompt{min-width:170px;padding:14px 16px}.map-state-prompt strong{font-size:9px}.map-state-prompt strong{font-size:0}.map-state-prompt strong:after{content:"Toque no estado";font-size:9px}.map-interaction-hint span{font-size:0}.map-interaction-hint span:after{content:"Toque sobre o estado";font-size:10px}}
