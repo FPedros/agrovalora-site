@@ -128,6 +128,15 @@ analysisSections.forEach((section) => activeAnalysis.observe(section));
 const map = document.querySelector('.land-price-map');
 const mapImage = map?.querySelector('img');
 const mapTooltip = map?.querySelector('[data-map-tooltip]');
+const mapHint = map?.querySelector('[data-map-hint]');
+
+if (map && mapHint) {
+  map.addEventListener('pointerenter', () => map.classList.add('map-interacted'));
+  map.addEventListener('pointerleave', (event) => {
+    if (event.pointerType !== 'touch') map.classList.remove('map-interacted');
+  });
+  map.addEventListener('touchstart', () => map.classList.add('map-interacted'), { once: true, passive: true });
+}
 const classRows = [
   ['Agricultura de Alto Potencial', 100000],
   ['Agricultura de Médio Potencial', 75000],
@@ -277,6 +286,34 @@ function prepareRedBoundaryMap() {
   for (let index = 0; index < pixelCount; index += 1) {
     regions[index] = labelToPole.get(labels[index]) || 0;
   }
+
+  // Mantém o entorno nítido e aplica o desfoque inicial somente dentro dos
+  // limites detectados do estado.
+  const stateBlurCanvas = document.createElement('canvas');
+  const stateBlurContext = stateBlurCanvas.getContext('2d');
+  stateBlurCanvas.width = canvas.width;
+  stateBlurCanvas.height = canvas.height;
+  stateBlurCanvas.className = 'map-state-blur';
+  stateBlurContext.filter = 'blur(10px)';
+  stateBlurContext.drawImage(mapImage, 0, 0, canvas.width, canvas.height);
+  stateBlurContext.filter = 'none';
+  stateBlurContext.globalCompositeOperation = 'destination-in';
+  const stateMask = stateBlurContext.createImageData(canvas.width, canvas.height);
+  for (let index = 0; index < regions.length; index += 1) {
+    if (!regions[index]) continue;
+    const pixel = index * 4;
+    stateMask.data[pixel] = 255;
+    stateMask.data[pixel + 1] = 255;
+    stateMask.data[pixel + 2] = 255;
+    stateMask.data[pixel + 3] = 255;
+  }
+  const stateMaskCanvas = document.createElement('canvas');
+  stateMaskCanvas.width = canvas.width;
+  stateMaskCanvas.height = canvas.height;
+  stateMaskCanvas.getContext('2d').putImageData(stateMask, 0, 0);
+  stateBlurContext.drawImage(stateMaskCanvas, 0, 0);
+  stateBlurContext.globalCompositeOperation = 'source-over';
+  map.insertBefore(stateBlurCanvas, mapTooltip);
 
   const regionCanvas = document.createElement('canvas');
   const regionContext = regionCanvas.getContext('2d');
