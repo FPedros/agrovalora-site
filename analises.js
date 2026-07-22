@@ -78,6 +78,14 @@ document.querySelectorAll('.analysis-block, .categories, .analysis-contact').for
   reveal.observe(section);
 });
 
+const accessMap = document.querySelector('.access-map');
+if (accessMap) {
+  const accessRouteReveal = new IntersectionObserver(([entry]) => {
+    accessMap.classList.toggle('route-visible', entry.isIntersecting);
+  }, { threshold: .28 });
+  accessRouteReveal.observe(accessMap);
+}
+
 const analysisSections = [...document.querySelectorAll('.analysis-block[id]')];
 const analysisLinks = [...document.querySelectorAll('[data-analysis-tabs] a')];
 const analysisNavigationLinks = [...document.querySelectorAll('[data-analysis-tabs] a, .categories nav a')];
