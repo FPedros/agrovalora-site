@@ -337,15 +337,20 @@ async function prepareVectorBoundaries() {
     paintStatePrompt();
   }
 
-  map.addEventListener('pointermove', (event) => {
+  const findPoleAt = (clientX, clientY) => {
     const rect = mapImage.getBoundingClientRect();
     const coverScale = Math.max(rect.width / canvas.width, rect.height / canvas.height);
     const cropX = (canvas.width * coverScale - rect.width) / 2;
     const cropY = (canvas.height * coverScale - rect.height) / 2;
-    const x = (event.clientX - rect.left + cropX) / coverScale;
-    const y = (event.clientY - rect.top + cropY) / coverScale;
+    const x = (clientX - rect.left + cropX) / coverScale;
+    const y = (clientY - rect.top + cropY) / coverScale;
     const poleEntry = polePaths.find(({ path }) => highlightContext.isPointInPath(path, x, y, 'evenodd'));
-    if (event.pointerType === 'touch' && !poleEntry) return;
+    return { poleEntry, rect };
+  };
+
+  map.addEventListener('pointermove', (event) => {
+    if (event.pointerType === 'touch') return;
+    const { poleEntry, rect } = findPoleAt(event.clientX, event.clientY);
     paintHighlight(poleEntry);
     if (poleEntry) {
       cursorLabel.textContent = `Polo ${String(poleEntry.pole).padStart(2, '0')}`;
@@ -369,6 +374,22 @@ async function prepareVectorBoundaries() {
       mapTooltip.style.top = `${desiredCenter}px`;
     }
   });
+
+  let touchStart = null;
+  map.addEventListener('pointerdown', (event) => {
+    if (event.pointerType !== 'touch') return;
+    touchStart = { x: event.clientX, y: event.clientY };
+  }, { passive: true });
+  map.addEventListener('pointerup', (event) => {
+    if (event.pointerType !== 'touch' || !touchStart) return;
+    const movement = Math.hypot(event.clientX - touchStart.x, event.clientY - touchStart.y);
+    touchStart = null;
+    if (movement > 12) return;
+    const { poleEntry } = findPoleAt(event.clientX, event.clientY);
+    if (poleEntry) paintHighlight(poleEntry);
+  }, { passive: true });
+  map.addEventListener('pointercancel', () => { touchStart = null; });
+
   map.addEventListener('pointerleave', (event) => {
     if (event.pointerType === 'touch') return;
     paintHighlight(null);
