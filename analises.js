@@ -161,6 +161,7 @@ const poleColors = {
 };
 
 async function prepareVectorBoundaries() {
+  const mobileMap = window.matchMedia('(max-width: 800px)').matches;
   const [polesResponse, stateResponse] = await Promise.all([
     fetch('/polos-agro.geojson'),
     fetch('/mt-limite.geojson'),
@@ -223,13 +224,13 @@ async function prepareVectorBoundaries() {
 
   drawCollection(polesCollection, {
     color: 'rgba(139, 145, 140, 0.68)',
-    width: 1,
+    width: mobileMap ? .55 : 1,
   });
   drawCollection(stateCollection, {
     color: 'rgba(47, 107, 71, 0.95)',
-    width: 2.4,
+    width: mobileMap ? 1.25 : 2.4,
     shadowColor: 'rgba(18, 36, 24, 0.3)',
-    shadowBlur: 6,
+    shadowBlur: mobileMap ? 3 : 6,
   });
 
   map.insertBefore(canvas, mapTooltip);
@@ -312,7 +313,7 @@ async function prepareVectorBoundaries() {
     statePrompt.classList.add('hidden');
     highlightContext.fillStyle = 'rgba(47, 107, 71, 0.2)';
     highlightContext.strokeStyle = 'rgba(47, 107, 71, 0.9)';
-    highlightContext.lineWidth = 2;
+    highlightContext.lineWidth = mobileMap ? 1 : 2;
     highlightContext.lineJoin = 'round';
     highlightContext.fill(poleEntry.path, 'evenodd');
     highlightContext.stroke(poleEntry.path);
@@ -328,7 +329,6 @@ async function prepareVectorBoundaries() {
     animatePriceValues();
   };
 
-  const mobileMap = window.matchMedia('(max-width: 800px)').matches;
   if (mobileMap) {
     mapTooltip.classList.add('mobile-price-panel');
     map.after(mapTooltip);
