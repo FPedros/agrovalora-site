@@ -642,5 +642,20 @@ async function preparePixelMap() {
   });
 }
 
-if (mapImage?.complete) preparePixelMap();
-else mapImage?.addEventListener('load', preparePixelMap, { once: true });
+if (map && mapImage) {
+  const initializeMap = () => {
+    if (mapImage.complete) preparePixelMap();
+    else mapImage.addEventListener('load', preparePixelMap, { once: true });
+  };
+
+  if ('IntersectionObserver' in window) {
+    const mapObserver = new IntersectionObserver((entries, observer) => {
+      if (!entries.some((entry) => entry.isIntersecting)) return;
+      observer.disconnect();
+      initializeMap();
+    }, { rootMargin: '500px 0px' });
+    mapObserver.observe(map);
+  } else {
+    initializeMap();
+  }
+}

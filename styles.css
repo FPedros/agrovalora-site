@@ -466,3 +466,6 @@ main>section:not(.hero){scroll-margin-top:70px}
   .blog-featured .blog-author img{width:30px;height:30px}
   .blog-featured .blog-read{margin-top:3px;padding-top:3px}
 }
+
+/* O primeiro quadro preserva o visual enquanto o vídeo inicia. */
+.hero{background-image:url('/Fundo-poster.webp');background-size:cover;background-position:center}

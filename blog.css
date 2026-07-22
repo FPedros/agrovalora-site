@@ -21,7 +21,7 @@ button{color:inherit;font:inherit}
 .micro-label{margin:0;font:400 9px/1.5 var(--mono);letter-spacing:.1em;text-transform:uppercase}
 
 .blog-header{position:fixed;z-index:50;top:0;left:0;width:100%;height:70px;padding:0 3.2vw;display:flex;align-items:center;justify-content:space-between;background:rgba(13,37,27,.96);color:var(--paper);border-bottom:1px solid rgba(248,250,247,.18);backdrop-filter:blur(16px)}
-.blog-brand img{display:block;width:235px}
+.blog-brand img{display:block;width:235px;height:auto}
 .blog-nav{display:flex;align-items:center;gap:38px;font:400 11px var(--mono);letter-spacing:.08em;text-transform:uppercase}
 .blog-nav a{position:relative;transition:opacity .25s}
 .blog-nav a:hover{opacity:.6}
@@ -140,7 +140,7 @@ button{color:inherit;font:inherit}
   .blog-nav a.active:after{display:none}
   .blog-nav .nav-cta{margin-top:18px;padding:17px;border:1px solid rgba(248,250,247,.4)}
   .mobile-nav-brand{width:100%;margin-top:auto;padding-top:30px!important;border:0!important;display:flex!important;justify-content:flex-end}
-  .mobile-nav-brand img{display:block;width:170px}
+  .mobile-nav-brand img{display:block;width:170px;height:auto}
   .blog-hero{min-height:82svh;padding:135px 20px 72px;grid-template-columns:1fr;gap:70px}
   .hero-copy h1{font-size:clamp(54px,14vw,94px)}
   .hero-note{max-width:430px}
