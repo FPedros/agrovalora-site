@@ -328,7 +328,14 @@ async function prepareVectorBoundaries() {
     animatePriceValues();
   };
 
-  paintStatePrompt();
+  const mobileMap = window.matchMedia('(max-width: 800px)').matches;
+  if (mobileMap) {
+    mapTooltip.classList.add('mobile-price-panel');
+    map.after(mapTooltip);
+    paintHighlight(polePaths.find(({ pole }) => pole === 1));
+  } else {
+    paintStatePrompt();
+  }
 
   map.addEventListener('pointermove', (event) => {
     const rect = mapImage.getBoundingClientRect();
@@ -338,6 +345,7 @@ async function prepareVectorBoundaries() {
     const x = (event.clientX - rect.left + cropX) / coverScale;
     const y = (event.clientY - rect.top + cropY) / coverScale;
     const poleEntry = polePaths.find(({ path }) => highlightContext.isPointInPath(path, x, y, 'evenodd'));
+    if (event.pointerType === 'touch' && !poleEntry) return;
     paintHighlight(poleEntry);
     if (poleEntry) {
       cursorLabel.textContent = `Polo ${String(poleEntry.pole).padStart(2, '0')}`;
@@ -361,7 +369,8 @@ async function prepareVectorBoundaries() {
       mapTooltip.style.top = `${desiredCenter}px`;
     }
   });
-  map.addEventListener('pointerleave', () => {
+  map.addEventListener('pointerleave', (event) => {
+    if (event.pointerType === 'touch') return;
     paintHighlight(null);
     cursorLabel.classList.remove('visible');
     mapTooltip.style.removeProperty('width');
